@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEO 분석기</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="wrap">
+        <!-- 헤더 -->
+        <header class="header">
+            <div class="header-inner">
+                <h1 class="logo">SEO Checker</h1>
+                <p class="header-desc">웹사이트의 SEO 상태를 무료로 진단해보세요</p>
+            </div>
+        </header>
+
+        <!-- 입력 섹션 -->
+        <section class="search-section">
+            <div class="search-box">
+                <p class="search-label">분석할 URL을 입력하세요</p>
+                <div class="search-row">
+                    <input 
+                        type="text" 
+                        id="urlInput" 
+                        class="search-input" 
+                        placeholder="https://example.com"
+                    >
+                    <button id="analyzeBtn" class="search-btn">분석 시작</button>
+                </div>
+                <p class="search-hint">http:// 또는 https://를 포함하여 입력해주세요</p>
+            </div>
+        </section>
+
+        <!-- 로딩 -->
+        <div id="loading" class="loading hidden">
+            <div class="loading-bar">
+                <div class="loading-fill"></div>
+            </div>
+            <p class="loading-text">분석 중입니다...</p>
+        </div>
+
+        <!-- 결과 섹션 -->
+        <section id="result" class="result-section hidden">
+
+            <!-- 총점 -->
+            <div class="score-section">
+                <div class="score-left">
+                    <div class="score-circle">
+                        <svg viewBox="0 0 120 120" class="score-svg">
+                            <circle cx="60" cy="60" r="50" class="score-track"/>
+                            <circle cx="60" cy="60" r="50" class="score-progress" id="scoreProgress"/>
+                        </svg>
+                        <div class="score-number">
+                            <span id="totalScore">0</span>
+                            <small>/100</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="score-right">
+                    <p class="score-grade" id="scoreGrade">분석 중</p>
+                    <p class="site-domain" id="siteDomain"></p>
+                    <p class="score-comment" id="scoreComment"></p>
+                </div>
+            </div>
+
+            <!-- 카테고리 점수 -->
+            <div class="category-section">
+                <div class="category-item">
+                    <div class="category-header">
+                        <span class="category-name">SEO 구조</span>
+                        <span class="category-score" id="catSeo">0/40</span>
+                    </div>
+                    <div class="category-bar">
+                        <div class="category-fill" id="catSeoBar"></div>
+                    </div>
+                </div>
+                <div class="category-item">
+                    <div class="category-header">
+                        <span class="category-name">콘텐츠 & 키워드</span>
+                        <span class="category-score" id="catContent">0/25</span>
+                    </div>
+                    <div class="category-bar">
+                        <div class="category-fill" id="catContentBar"></div>
+                    </div>
+                </div>
+                <div class="category-item">
+                    <div class="category-header">
+                        <span class="category-name">소셜 친화도</span>
+                        <span class="category-score" id="catSocial">0/10</span>
+                    </div>
+                    <div class="category-bar">
+                        <div class="category-fill" id="catSocialBar"></div>
+                    </div>
+                </div>
+                <div class="category-item">
+                    <div class="category-header">
+                        <span class="category-name">성능 / 보안</span>
+                        <span class="category-score" id="catPerf">0/20</span>
+                    </div>
+                    <div class="category-bar">
+                        <div class="category-fill" id="catPerfBar"></div>
+                    </div>
+                </div>
+                <div class="category-item">
+                    <div class="category-header">
+                        <span class="category-name">기타(기술)</span>
+                        <span class="category-score" id="catEtc">0/5</span>
+                    </div>
+                    <div class="category-bar">
+                        <div class="category-fill" id="catEtcBar"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 상세 분석 -->
+            <div class="detail-section">
+                <h2 class="detail-title">상세 분석 결과</h2>
+                <div id="detailList" class="detail-list"></div>
+            </div>
+
+        </section>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
