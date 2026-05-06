@@ -1,4 +1,8 @@
-const PROXY = "https://api.allorigins.win/get?url=";
+const PROXIES = [
+    (url) => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+    (url) => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+    (url) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
+];
 
 const analyzeBtn = document.getElementById("analyzeBtn");
 const urlInput = document.getElementById("urlInput");
@@ -10,9 +14,39 @@ urlInput.addEventListener("keydown", (e) => {
     if (e.key === "Enter") run();
 });
 
+async function fetchWithProxy(url) {
+    for (let i = 0; i < PROXIES.length; i++) {
+        try {
+            const proxyUrl = PROXIES[i](url);
+            const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(8000) });
+
+            if (!res.ok) continue;
+
+            // allorigins는 json 반환
+            if (i === 0) {
+                const json = await res.json();
+                if (json.contents) return json.contents;
+                continue;
+            }
+
+            // 나머지는 text 반환
+            const text = await res.text();
+            if (text && text.length > 100) return text;
+
+        } catch (e) {
+            console.warn(`프록시 ${i + 1} 실패:`, e.message);
+            continue;
+        }
+    }
+    throw new Error("모든 프록시 서버 연결에 실패했습니다.");
+}
+
 async function run() {
     const raw = urlInput.value.trim();
-    if (!raw) return;
+    if (!raw) {
+        alert("URL을 입력해주세요.");
+        return;
+    }
 
     let url = raw;
     if (!/^https?:\/\//i.test(url)) {
@@ -22,9 +56,7 @@ async function run() {
     setLoading(true);
 
     try {
-        const res = await fetch(PROXY + encodeURIComponent(url));
-        const json = await res.json();
-        const html = json.contents;
+        const html = await fetchWithProxy(url);
 
         if (!html) throw new Error("HTML을 가져올 수 없습니다.");
 
@@ -34,7 +66,7 @@ async function run() {
         analyze(doc, url);
     } catch (e) {
         setLoading(false);
-        alert("분석에 실패했습니다. URL을 확인하거나 잠시 후 다시 시도해주세요.\n" + e.message);
+        alert("분석에 실패했습니다.\n\n원인: " + e.message + "\n\n잠시 후 다시 시도해주세요.");
     }
 }
 
@@ -421,11 +453,9 @@ function analyze(doc, url) {
         }
     });
 
-    // 카테고리별 비율로 최종 점수 계산
     let total = 0;
     Object.keys(catMap).forEach(k => {
-        const cat = catMap[k];
-        total += Math.min(cat.score, cat.max);
+        total += Math.min(catMap[k].score, catMap[k].max);
     });
 
     setLoading(false);
@@ -435,11 +465,9 @@ function analyze(doc, url) {
 function renderResult(total, checks, catMap, url) {
     result.classList.remove("hidden");
 
-    // 총점
     document.getElementById("totalScore").textContent = total;
     document.getElementById("siteDomain").textContent = url;
 
-    // 원형 그래프
     const progress = document.getElementById("scoreProgress");
     const circumference = 314;
     const offset = circumference - (total / 100) * circumference;
@@ -450,7 +478,6 @@ function renderResult(total, checks, catMap, url) {
         else progress.style.stroke = "#dc2626";
     }, 100);
 
-    // 등급 & 코멘트
     let grade, comment;
     if (total >= 80) {
         grade = "우수";
@@ -469,13 +496,12 @@ function renderResult(total, checks, catMap, url) {
     document.getElementById("scoreGrade").textContent = grade;
     document.getElementById("scoreComment").textContent = comment;
 
-    // 카테고리 점수
     const catIds = {
-        seo: { label: "SEO 구조", max: 40 },
-        content: { label: "콘텐츠 & 키워드", max: 25 },
-        social: { label: "소셜 친화도", max: 10 },
-        perf: { label: "성능 / 보안", max: 20 },
-        etc: { label: "기타(기술)", max: 5 }
+        seo: { max: 40 },
+        content: { max: 25 },
+        social: { max: 10 },
+        perf: { max: 20 },
+        etc: { max: 5 }
     };
 
     const catDomMap = {
@@ -495,7 +521,6 @@ function renderResult(total, checks, catMap, url) {
         }, 200);
     });
 
-    // 상세 리스트
     const list = document.getElementById("detailList");
     list.innerHTML = "";
 
